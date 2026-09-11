@@ -1,0 +1,64 @@
+# =========================
+# Compilados
+# =========================
+*.o
+*.obj
+*.out
+*.exe
+*.a
+*.so
+*.dll
+
+# Executáveis/binários comuns
+a.out
+
+# =========================
+# Diretórios de build
+# =========================
+build/
+bin/
+obj/
+dist/
+out/
+
+# =========================
+# Debug
+# =========================
+*.dSYM/
+*.su
+*.gcda
+*.gcno
+*.gcov
+
+# =========================
+# CMake
+# =========================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+_install/
+
+# =========================
+# IDEs / Editores
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =========================
+# Sistema operacional
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Arquivos temporários
+# =========================
+*.tmp
+*.temp
+*.log
