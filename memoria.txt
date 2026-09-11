@@ -1,0 +1,14 @@
+byte a
+byte b
+byte c
+l:
+in a
+in b
+mov r0 a
+mov r1 b
+add r0 r1
+store c r0
+out c
+jmp l
+stop
+end 
