@@ -7,16 +7,24 @@ typedef enum {
     STORE,
     OUT,
     JUMP,
-    STOP
+    STOP,
+    SUB,
+    MUL,
+    DIV,
+    BR,
+    BEQ,
+    BGT,
+    BLT
 } Opcodes;
 
 typedef struct {
     int op;
     int arg1;
     int arg2;
+    int arg3;
 } Instrucao;
 
-int op, arg1, arg2,i=0;
+int op, arg1, arg2, arg3,i=0;
 Instrucao mem[256];
 int dadosMem[64];
 
@@ -28,10 +36,11 @@ void memoria(){
     FILE * f ;
     f = fopen ("simulador.txt", "r");
 
-    while (fscanf (f, "%d %d %d", &op, &arg1, &arg2)==3) {
+    while (fscanf (f, "%d %d %d %d", &op, &arg1, &arg2, &arg3)==4) {
         mem[i].op = op;
         mem[i].arg1 = arg1;
         mem[i].arg2 = arg2;
+        mem[i].arg3 = arg3;
         i++;
     }
     fclose(f);
@@ -76,6 +85,42 @@ void cpu(){
             case STOP:
                 continua=0;
                 break;
+            case SUB:
+                reg[mem[pc].arg1] = reg[mem[pc].arg1] - reg[mem[pc].arg2];
+                pc++;
+                break;
+            case MUL:
+                reg[mem[pc].arg1] = reg[mem[pc].arg1] * reg[mem[pc].arg2];
+                pc++;
+                break;
+            case DIV:
+                reg[mem[pc].arg1] = reg[mem[pc].arg1] / reg[mem[pc].arg2];
+                pc++;
+                break;
+            case BR:
+                pc = mem[pc].arg1;
+                break;
+            case BEQ:
+                if(reg[mem[pc].arg1] == reg[mem[pc].arg2]){
+                    pc = mem[pc].arg3;
+                }else{
+                    pc++;
+                }
+                break;
+            case BGT:
+                if(reg[mem[pc].arg1] > reg[mem[pc].arg2]){
+                    pc = mem[pc].arg3;
+                }else{
+                    pc++;
+                }
+                break;
+            case BLT:
+                if(reg[mem[pc].arg1] < reg[mem[pc].arg2]){
+                    pc = mem[pc].arg3;
+                }else{
+                    pc++;
+                }
+                break;
             default:
                 break;
         }
@@ -85,5 +130,4 @@ void cpu(){
 int main (){
     memoria();
     cpu();
-   
 }
