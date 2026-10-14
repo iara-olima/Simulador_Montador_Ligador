@@ -17,7 +17,8 @@ enum Opcodes {
     BR,
     BEQ,
     BGT,
-    BLT
+    BLT,
+    END = -1
 };
 
 struct Instrucao {
@@ -140,6 +141,9 @@ void cpu() {
                 else {
                     pc++;
                 }
+                break;
+                case END:
+                continua = false;
                 break;
             default:
                 cout << "Opcode invalido: "

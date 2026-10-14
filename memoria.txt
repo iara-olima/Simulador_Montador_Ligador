@@ -1,7 +1,7 @@
 byte a
 byte b
 byte c
-l:
+: l
 in a
 in b
 mov r0 a
