@@ -61,6 +61,10 @@ void memoria(char *argv[]) {
 
 void cpu() {
     while (continua) {
+        if (mem[pc].op == -1) {
+            pc++;
+            continue;
+        }
         switch (mem[pc].op) {
             case IN:
                 cout << "Digite um valor: ";

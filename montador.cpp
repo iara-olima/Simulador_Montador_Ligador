@@ -1,33 +1,21 @@
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
 enum Opcodes {
-    IN,
-    MOV,
-    ADD,
-    STORE,
-    OUT,
-    JUMP,
-    STOP,
-    SUB,
-    MUL,
-    DIV,
-    BR,
-    BEQ,
-    BGT,
-    BLT
+    IN, MOV, ADD, STORE, OUT, JUMP, STOP,
+    SUB, MUL, DIV, BR, BEQ, BGT, BLT
 };
 
 struct Simbolos {
     string nome;
     int end;
 };
-
-#define NUM_SIMBOLOS 4
 
 int defineArg(string arg) {
     if (arg == "r0")
@@ -41,104 +29,155 @@ int defineArg(string arg) {
 }
 
 int defineOperacao(string op) {
-    if (op == "in")
-        return IN;
-    else if (op == "mov")
-        return MOV;
-    else if (op == "add")
-        return ADD;
-    else if (op == "store")
-        return STORE;
-    else if (op == "out")
-        return OUT;
-    else if (op == "jmp")
-        return JUMP;
-    else if (op == "stop")
-        return STOP;
-    else if (op == "sub")
-        return SUB;
-    else if (op == "mul")
-        return MUL;
-    else if (op == "div")
-        return DIV;
-    else if (op == "br")
-        return BR;
-    else if (op == "beq")
-        return BEQ;
-    else if (op == "bgt")
-        return BGT;
-    else if (op == "blt")
-        return BLT;
-    else
-        return -1;
+    if (op == "in")    return IN;
+    if (op == "mov")   return MOV;
+    if (op == "add")   return ADD;
+    if (op == "store") return STORE;
+    if (op == "out")   return OUT;
+    if (op == "jmp")   return JUMP;
+    if (op == "stop")  return STOP;
+    if (op == "sub")   return SUB;
+    if (op == "mul")   return MUL;
+    if (op == "div")   return DIV;
+    if (op == "br")    return BR;
+    if (op == "beq")   return BEQ;
+    if (op == "bgt")   return BGT;
+    if (op == "blt")   return BLT;
+
+    return -1;
 }
 
-int buscaSimbolo(Simbolos tabela[], string nome) {
-    for (int i = 0; i < NUM_SIMBOLOS; i++) {
-
-        if (tabela[i].nome == nome) {
-            return tabela[i].end;
-        }
+int buscaSimbolo(const vector<Simbolos>& tabela,
+                 const string& nome) {
+    for (const auto& simbolo : tabela) {
+        if (simbolo.nome == nome)
+            return simbolo.end;
     }
+
     return defineArg(nome);
 }
 
-int main(int argc, char *argv[]) {
-    string linha, op, arg1, arg2, arg3;
-    ofstream arquivoSaida("saida.txt");
-    int o, a1, a2, a3, i=0;
-    Simbolos tabela[NUM_SIMBOLOS];
-
+int main(int argc, char* argv[]) {
     if (argc != 2) {
-        cout << "Numero de argumentos insuficientes" << endl;
+        cout << "Uso: " << argv[0] << " arquivo.asm" << endl;
+        return 1;
     }
 
     ifstream arquivo(argv[1]);
 
     if (!arquivo.is_open()) {
-        cout << "Erro ao abrir arquivo" << endl;
+        cout << "Erro ao abrir arquivo de entrada." << endl;
+        return 1;
     }
 
-    int c = 0;
+    ofstream arquivoSaida("saida.txt");
+
+    if (!arquivoSaida.is_open()) {
+        cout << "Erro ao criar arquivo de saida." << endl;
+        return 1;
+    }
+
+    vector<Simbolos> tabela;
+    string linha, op, arg1, arg2, arg3;
+
+    // PRIMEIRA PASSAGEM:
+    // Registra variaveis e labels com seus enderecos corretos.
+    int endereco = 0;
 
     while (getline(arquivo, linha)) {
         istringstream ss(linha);
-        if (!(ss >> op)) continue;
 
-        if (op == "byte" || op == ":") {
+        if (!(ss >> op))
+            continue;
+
+        if (op == "end")
+            continue;
+
+        if (op == "byte") {
             ss >> arg1;
-            tabela[i].nome = arg1;
-            tabela[i].end  = i;
-            i++;
+
+            if (arg1.empty()) {
+                cout << "Erro: variavel sem nome." << endl;
+                return 1;
+            }
+
+            tabela.push_back({arg1, endereco});
+
+        } else if (op == ":") {
+            ss >> arg1;
+
+            if (arg1.empty()) {
+                cout << "Erro: label sem nome." << endl;
+                return 1;
+            }
+
+            // O label ocupa uma linha na saida,
+            // mas o desvio deve apontar para a proxima linha.
+            tabela.push_back({arg1, endereco + 1});
         }
-        
-        c++;
-    }   
-    arquivo.close();
-    
-    for (int i = 0; i < NUM_SIMBOLOS; i++) {
-        cout << tabela[i].nome << " " << tabela[i].end << endl;
+
+        // Cada linha nao vazia, exceto "end",
+        // corresponde a uma linha na saida.
+        endereco++;
     }
 
+    arquivo.close();
+
+    cout << "Tabela de simbolos:" << endl;
+
+    for (const auto& simbolo : tabela) {
+        cout << simbolo.nome << " "
+             << simbolo.end << endl;
+    }
+
+    // SEGUNDA PASSAGEM:
     ifstream arquivo2(argv[1]);
+
+    if (!arquivo2.is_open()) {
+        cout << "Erro ao reabrir arquivo de entrada." << endl;
+        return 1;
+    }
+
     while (getline(arquivo2, linha)) {
         istringstream ss(linha);
-        if (!(ss >> op)) continue;
+
+        if (!(ss >> op))
+            continue;
+
+        // Diretivas que nao geram instrucao executavel.
+        if (op == "end")
+            continue;
+
+        if (op == "byte" || op == ":") {
+            arquivoSaida << "-1 -1 -1 -1" << endl;
+            continue;
+        }
 
         arg1 = arg2 = arg3 = "";
-        
-        if (op == "byte" || op == ":") {
-            arquivoSaida << "-1 -1 -1 -1" << endl; 
-        } else {
-            ss >> arg1 >> arg2 >> arg3;
-            
-            o  = defineOperacao(op);
-            a1 = buscaSimbolo(tabela, arg1);
-            a2 = buscaSimbolo(tabela, arg2);
-            a3 = buscaSimbolo(tabela, arg3);
 
-            arquivoSaida << o << " " << a1 << " " << a2 << " " << a3 << endl;
+        ss >> arg1 >> arg2 >> arg3;
+
+        int o = defineOperacao(op);
+        int a1 = buscaSimbolo(tabela, arg1);
+        int a2 = buscaSimbolo(tabela, arg2);
+        int a3 = buscaSimbolo(tabela, arg3);
+
+        if (o == -1) {
+            cout << "Erro: operacao desconhecida: "
+                 << op << endl;
+            return 1;
         }
+
+        arquivoSaida << o << " "
+                     << a1 << " "
+                     << a2 << " "
+                     << a3 << endl;
     }
+
+    arquivo2.close();
     arquivoSaida.close();
+
+    cout << "Montagem concluida."
+         << endl;
+
 }
