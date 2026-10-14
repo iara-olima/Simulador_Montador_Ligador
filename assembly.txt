@@ -1,0 +1,43 @@
+byte a
+byte b
+byte resultado
+byte auxiliar
+: inicio
+in a
+in b
+mov r0 a
+mov r1 b
+add r0 r1
+store resultado r0
+out resultado
+sub r0 r1
+store auxiliar r0
+out auxiliar
+mul r0 r1
+store resultado r0
+out resultado
+div r0 r1
+store resultado r0
+out resultado
+br teste_beq
+: teste_beq
+mov r0 a
+mov r1 a
+beq r0 r1 teste_bgt
+out b
+: teste_bgt
+mov r0 a
+mov r1 b
+bgt r0 r1 teste_blt
+out a
+: teste_blt
+mov r0 a
+mov r1 b
+blt r0 r1 teste_jmp
+out b
+: teste_jmp
+jmp teste_fim
+out a
+: teste_fim
+stop
+end
