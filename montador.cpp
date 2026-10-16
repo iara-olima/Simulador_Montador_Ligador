@@ -59,7 +59,7 @@ int buscaSimbolo(const vector<Simbolos>& tabela,
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        cout << "Uso: " << argv[0] << " arquivo.asm" << endl;
+        cout << "Uso: " << argv[0] << " arquivo.txt" << endl;
         return 1;
     }
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ofstream arquivoSaida("saida.txt");
+    ofstream arquivoSaida("saida_binario.txt");
 
     if (!arquivoSaida.is_open()) {
         cout << "Erro ao criar arquivo de saida." << endl;
