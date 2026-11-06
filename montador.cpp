@@ -59,7 +59,7 @@ int buscaSimbolo(const vector<Simbolos>& tabela,
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        cout << "Uso: " << argv[0] << " arquivo.txt" << endl;
+        cout << "Uso: " << argv[0]  << endl;
         return 1;
     }
 

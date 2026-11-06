@@ -10,7 +10,7 @@ simulador: simulador.cpp
 	$(CXX) $(CXXFLAGS) simulador.cpp -o simulador
 
 run: all
-	./montador $(ARQUIVO) && ./simulador saida.txt
+	./montador $(ARQUIVO) && ./simulador saida_binario.txt
 
 clean:
 	rm -f montador simulador saida_binario.txt
