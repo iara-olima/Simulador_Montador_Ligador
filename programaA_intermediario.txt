@@ -1,0 +1,14 @@
+CODE
+-1 -1 -1 -1
+0 0 -1 -1
+5 -1 -1 -1
+-1 -1 -1 -1
+4 0 -1 -1
+6 -1 -1 -1
+
+SYMBOLS
+resultado 0
+retorno 4
+
+REFERENCES
+calcula 2 1

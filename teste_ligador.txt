@@ -1,0 +1,7 @@
+in a
+in b
+mov r0 a
+mov r1 b
+jmp soma
+out resultado
+stop

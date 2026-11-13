@@ -1,0 +1,10 @@
+byte resultado
+
+in resultado
+jmp calcula
+
+: retorno
+out resultado
+stop
+
+end

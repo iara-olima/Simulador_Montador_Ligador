@@ -1,0 +1,8 @@
+byte valor
+
+: calcula
+mov r0 valor
+store resultado r0
+jmp retorno
+
+end
