@@ -1,10 +1,10 @@
 byte resultado
 
 in resultado
-jmp calcula
+jmp copia
 
 : retorno
-out resultado
+out valor
 stop
 
 end

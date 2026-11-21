@@ -78,22 +78,58 @@ bool simboloExiste(const vector<Simbolos>& tabela, const string& nome) {
 
     Quando for externo, tambem registra uma referencia.
 */
-int resolveArgumento( const string& argumento, const vector<Simbolos>& tabela, vector<Referencia>& referencias, int enderecoInstrucao, int numeroArgumento) {
+int resolveArgumento(
+    const string& argumento,
+    const vector<Simbolos>& tabela,
+    vector<Referencia>& referencias,
+    int enderecoInstrucao,
+    int numeroArgumento
+) {
 
     if (argumento.empty())
         return -1;
 
+    /*
+        Registradores nao precisam de relocacao.
+    */
     int registrador = defineArg(argumento);
 
     if (registrador != -1)
         return registrador;
 
+    /*
+        Se for simbolo, retornamos seu endereco local,
+        MAS tambem registramos uma referencia.
+
+        O ligador posteriormente vai transformar
+        esse endereco local em endereco global.
+    */
     for (const auto& simbolo : tabela) {
-        if (simbolo.nome == argumento)
+
+        if (simbolo.nome == argumento) {
+
+            referencias.push_back({
+                argumento,
+                enderecoInstrucao,
+                numeroArgumento
+            });
+
             return simbolo.end;
+        }
     }
 
-    referencias.push_back({argumento, enderecoInstrucao, numeroArgumento});
+    /*
+        Se nao encontrou no modulo atual,
+        e um simbolo externo.
+
+        Colocamos -1 como placeholder e
+        registramos a referencia.
+    */
+    referencias.push_back({
+        argumento,
+        enderecoInstrucao,
+        numeroArgumento
+    });
 
     return -1;
 }

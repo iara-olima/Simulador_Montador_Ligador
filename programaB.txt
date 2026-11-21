@@ -1,8 +1,8 @@
 byte valor
 
-: calcula
-mov r0 valor
-store resultado r0
+: copia
+mov r0 resultado
+store valor r0
 jmp retorno
 
 end
