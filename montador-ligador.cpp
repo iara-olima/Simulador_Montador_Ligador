@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
 
         programaA_intermediario.txt
     */
+   //testando commit
     string nomeArquivo = argv[1];
 
     size_t pos = nomeArquivo.rfind(".txt");
