@@ -67,17 +67,7 @@ bool simboloExiste(const vector<Simbolos>& tabela, const string& nome) {
     return false;
 }
 
-/*
-    Resolve um argumento.
 
-    Retorna:
-
-    - numero do registrador, se for r0/r1/r2
-    - endereco do simbolo, se for um simbolo local
-    - -1, se for um simbolo externo
-
-    Quando for externo, tambem registra uma referencia.
-*/
 int resolveArgumento(
     const string& argumento,
     const vector<Simbolos>& tabela,
@@ -89,21 +79,11 @@ int resolveArgumento(
     if (argumento.empty())
         return -1;
 
-    /*
-        Registradores nao precisam de relocacao.
-    */
     int registrador = defineArg(argumento);
 
     if (registrador != -1)
         return registrador;
 
-    /*
-        Se for simbolo, retornamos seu endereco local,
-        MAS tambem registramos uma referencia.
-
-        O ligador posteriormente vai transformar
-        esse endereco local em endereco global.
-    */
     for (const auto& simbolo : tabela) {
 
         if (simbolo.nome == argumento) {
@@ -118,13 +98,6 @@ int resolveArgumento(
         }
     }
 
-    /*
-        Se nao encontrou no modulo atual,
-        e um simbolo externo.
-
-        Colocamos -1 como placeholder e
-        registramos a referencia.
-    */
     referencias.push_back({
         argumento,
         enderecoInstrucao,
@@ -144,9 +117,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    /*
-        Abre arquivo de entrada.
-    */
     ifstream arquivo(argv[1]);
 
     if (!arquivo.is_open()) {
@@ -157,18 +127,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    /*
-        Define o nome do arquivo intermediario.
-
-        Exemplo:
-
-        programaA.txt
-
-        vira:
-
-        programaA_intermediario.txt
-    */
-   //testando commit
     string nomeArquivo = argv[1];
 
     size_t pos = nomeArquivo.rfind(".txt");
@@ -211,8 +169,6 @@ int main(int argc, char* argv[]) {
     ============================================================
                          PRIMEIRA PASSAGEM
     ============================================================
-
-    Descobre os simbolos locais e seus enderecos.
     */
 
     int endereco = 0;
@@ -224,15 +180,9 @@ int main(int argc, char* argv[]) {
         if (!(ss >> op))
             continue;
 
-        /*
-            "end" nao ocupa uma posicao.
-        */
         if (op == "end")
             continue;
 
-        /*
-            Declaracao de variavel.
-        */
         if (op == "byte") {
 
             ss >> arg1;
@@ -259,9 +209,6 @@ int main(int argc, char* argv[]) {
             });
         }
 
-        /*
-            Label.
-        */
         else if (op == ":") {
 
             ss >> arg1;
@@ -281,22 +228,8 @@ int main(int argc, char* argv[]) {
 
                 return 1;
             }
-
-            /*
-                A linha do label gera:
-
-                -1 -1 -1 -1
-
-                Portanto o endereco da label
-                e o da proxima instrucao.
-            */
             tabela.push_back({arg1, endereco + 1});
         }
-
-        /*
-            Toda linha, exceto "end", ocupa
-            uma posicao no codigo.
-        */
         endereco++;
     }
 
@@ -318,9 +251,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    /*
-        Escreve o inicio da secao CODE.
-    */
     arquivoSaida << "CODE" << endl;
 
     int enderecoInstrucao = 0;
@@ -332,16 +262,9 @@ int main(int argc, char* argv[]) {
         if (!(ss >> op))
             continue;
 
-        /*
-            "end" nao gera codigo.
-        */
         if (op == "end")
             continue;
 
-        /*
-            byte e label ocupam uma posicao
-            no codigo intermediario.
-        */
         if (op == "byte" || op == ":") {
 
             arquivoSaida

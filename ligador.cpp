@@ -136,11 +136,6 @@ bool lerModulo(const string& nomeArquivo,
             int arg2;
             int arg3;
 
-            /*
-                A linha que acabamos de ler
-                precisa ser usada como primeiro
-                campo da instrucao.
-            */
             op = stoi(linha);
 
             ss >> arg1 >> arg2 >> arg3;
@@ -267,16 +262,6 @@ void mostrarModulo(const Modulo& modulo) {
 
 int main(int argc, char* argv[]) {
 
-    /*
-        O programa espera pelo menos:
-
-        ligador arquivo1 arquivo2 ...
-
-        Exemplo:
-
-        ./ligador programaA_intermediario.txt
-                 programaB_intermediario.txt
-    */
 
     if (argc < 2) {
 
@@ -312,14 +297,6 @@ int main(int argc, char* argv[]) {
     ========================================================
                 2. CALCULAR AS BASES
     ========================================================
-
-        O primeiro modulo comeca em 0.
-
-        O segundo comeca depois do primeiro.
-
-        O terceiro depois do segundo.
-
-        Etc.
     */
 
     int enderecoAtual = 0;
@@ -343,23 +320,8 @@ int main(int argc, char* argv[]) {
     for (const auto& modulo : modulos) {
 
         for (const auto& simbolo : modulo.simbolos) {
-
-            /*
-                Converte:
-
-                endereco local
-
-                para:
-
-                endereco global
-            */
             int enderecoGlobal =
                 modulo.base + simbolo.endereco;
-
-            /*
-                Verifica se o simbolo
-                ja existe globalmente.
-            */
             if (simboloExiste(tabelaGlobal,
                                simbolo.nome)) {
 
@@ -423,19 +385,12 @@ int main(int argc, char* argv[]) {
         for (const auto& referencia :
              modulo.referencias) {
 
-            /*
-                Procura o simbolo na tabela global.
-            */
             int endereco =
                 buscaSimbolo(
                     tabelaGlobal,
                     referencia.nome
                 );
 
-            /*
-                Se nao encontrou:
-                erro de simbolo externo.
-            */
             if (endereco == -1) {
 
                 cout << endl;
@@ -447,10 +402,6 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
 
-            /*
-                Verifica se a instrucao
-                realmente existe.
-            */
             if (referencia.enderecoInstrucao
                 < 0 ||
                 referencia.enderecoInstrucao
@@ -463,11 +414,6 @@ int main(int argc, char* argv[]) {
 
                 return 1;
             }
-
-            /*
-                Verifica qual argumento
-                deve ser alterado.
-            */
             if (referencia.argumento == 1) {
 
                 modulo.codigo[
@@ -516,10 +462,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    /*
-        Junta os modulos na ordem
-        em que foram passados.
-    */
     for (const auto& modulo : modulos) {
 
         for (const auto& instrucao :
