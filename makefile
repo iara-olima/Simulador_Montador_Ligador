@@ -80,9 +80,7 @@ test: $(SAIDA) $(SIMULADOR)
 	@echo "         TESTE COMPLETO DO SISTEMA"
 	@echo "=========================================="
 	@echo ""
-	@echo "Entrada utilizada: 7"
-	@echo ""
-	printf "7\n" | ./$(SIMULADOR) $(SAIDA)
+	./$(SIMULADOR) $(SAIDA)
 
 
 # ==========================================================

@@ -1,6 +1,0 @@
-: soma
-add r0 r1
-store resultado r0
-br fim
-
-: fim

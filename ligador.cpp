@@ -7,9 +7,11 @@
 using namespace std;
 
 struct Simbolo {
+
     string nome;
     int endereco;
 };
+
 
 struct Referencia {
     string nome;
@@ -17,27 +19,20 @@ struct Referencia {
     int argumento;
 };
 
+
 struct Modulo {
     string nome;
-
     vector<vector<int>> codigo;
-
     vector<Simbolo> simbolos;
-
+    vector<string> globais;
     vector<Referencia> referencias;
-
     int base;
 };
 
-
-/*
-============================================================
-                    FUNCOES AUXILIARES
-============================================================
-*/
-
-bool simboloExiste(const vector<Simbolo>& tabela,
-                   const string& nome) {
+bool simboloExiste(
+    const vector<Simbolo>& tabela,
+    const string& nome
+) {
 
     for (const auto& simbolo : tabela) {
 
@@ -48,12 +43,10 @@ bool simboloExiste(const vector<Simbolo>& tabela,
     return false;
 }
 
-
-/*
-    Procura um simbolo na tabela global.
-*/
-int buscaSimbolo(const vector<Simbolo>& tabela,
-                 const string& nome) {
+int buscaSimbolo(
+    const vector<Simbolo>& tabela,
+    const string& nome
+) {
 
     for (const auto& simbolo : tabela) {
 
@@ -64,70 +57,82 @@ int buscaSimbolo(const vector<Simbolo>& tabela,
     return -1;
 }
 
+bool ehGlobal(
+    const vector<string>& globais,
+    const string& nome
+) {
 
-/*
-============================================================
-                    LEITURA DO MODULO
-============================================================
-*/
+    for (const auto& global : globais) {
 
-bool lerModulo(const string& nomeArquivo,
-              Modulo& modulo) {
+        if (global == nome)
+            return true;
+    }
+
+    return false;
+}
+
+bool lerModulo(
+    const string& nomeArquivo,
+    Modulo& modulo
+) {
 
     ifstream arquivo(nomeArquivo);
+
 
     if (!arquivo.is_open()) {
 
         cout << "Erro ao abrir: "
-             << nomeArquivo << endl;
+             << nomeArquivo
+             << endl;
 
         return false;
     }
 
+
     modulo.nome = nomeArquivo;
+
 
     string linha;
     string secao = "";
 
+
     while (getline(arquivo, linha)) {
 
         istringstream ss(linha);
-
-        /*
-            Ignora linhas vazias.
-        */
         if (!(ss >> linha))
             continue;
 
-        /*
-        ====================================================
-                            SECOES
-        ====================================================
-        */
 
         if (linha == "CODE") {
 
             secao = "CODE";
+
             continue;
         }
+
 
         if (linha == "SYMBOLS") {
 
             secao = "SYMBOLS";
+
             continue;
         }
+
+
+        if (linha == "GLOBALS") {
+
+            secao = "GLOBALS";
+
+            continue;
+        }
+
 
         if (linha == "REFERENCES") {
 
             secao = "REFERENCES";
+
             continue;
         }
-
-        /*
-        ====================================================
-                            CODE
-        ====================================================
-        */
 
         if (secao == "CODE") {
 
@@ -136,79 +141,95 @@ bool lerModulo(const string& nomeArquivo,
             int arg2;
             int arg3;
 
+
             op = stoi(linha);
 
-            ss >> arg1 >> arg2 >> arg3;
+
+            ss >> arg1
+               >> arg2
+               >> arg3;
+
 
             modulo.codigo.push_back({
+
                 op,
                 arg1,
                 arg2,
                 arg3
+
             });
         }
-
-        /*
-        ====================================================
-                          SYMBOLS
-        ====================================================
-        */
 
         else if (secao == "SYMBOLS") {
 
             string nome;
             int endereco;
 
+
             nome = linha;
+
 
             ss >> endereco;
 
+
             modulo.simbolos.push_back({
+
                 nome,
                 endereco
+
             });
         }
 
-        /*
-        ====================================================
-                        REFERENCES
-        ====================================================
-        */
+        else if (secao == "GLOBALS") {
+
+            string nome;
+
+
+            nome = linha;
+
+
+            modulo.globais.push_back(nome);
+        }
 
         else if (secao == "REFERENCES") {
 
             string nome;
+
             int enderecoInstrucao;
+
             int argumento;
 
+
             nome = linha;
+
 
             ss >> enderecoInstrucao
                >> argumento;
 
+
             modulo.referencias.push_back({
+
                 nome,
                 enderecoInstrucao,
                 argumento
+
             });
         }
     }
 
+
     arquivo.close();
+
 
     return true;
 }
 
-
-/*
-============================================================
-                    MOSTRA MODULO
-============================================================
-*/
-
-void mostrarModulo(const Modulo& modulo) {
+void mostrarModulo(
+    const Modulo& modulo
+) {
 
     cout << endl;
+
     cout << "================================"
          << endl;
 
@@ -224,11 +245,15 @@ void mostrarModulo(const Modulo& modulo) {
          << modulo.codigo.size()
          << endl;
 
+
     cout << endl;
 
-    cout << "Simbolos:" << endl;
+    cout << "Simbolos:"
+         << endl;
 
-    for (const auto& simbolo : modulo.simbolos) {
+
+    for (const auto& simbolo :
+         modulo.simbolos) {
 
         cout << "  "
              << simbolo.nome
@@ -237,11 +262,30 @@ void mostrarModulo(const Modulo& modulo) {
              << endl;
     }
 
+
     cout << endl;
 
-    cout << "Referencias:" << endl;
+    cout << "Globais:"
+         << endl;
 
-    for (const auto& referencia : modulo.referencias) {
+
+    for (const auto& global :
+         modulo.globais) {
+
+        cout << "  "
+             << global
+             << endl;
+    }
+
+
+    cout << endl;
+
+    cout << "Referencias:"
+         << endl;
+
+
+    for (const auto& referencia :
+         modulo.referencias) {
 
         cout << "  "
              << referencia.nome
@@ -253,18 +297,12 @@ void mostrarModulo(const Modulo& modulo) {
     }
 }
 
-
-/*
-============================================================
-                        MAIN
-============================================================
-*/
-
-int main(int argc, char* argv[]) {
-
+int main(
+    int argc,
+    char* argv[]
+) {
 
     if (argc < 2) {
-
         cout << "Uso: "
              << argv[0]
              << " arquivo1.txt arquivo2.txt ..."
@@ -282,12 +320,21 @@ int main(int argc, char* argv[]) {
 
     vector<Modulo> modulos;
 
-    for (int i = 1; i < argc; i++) {
+
+    for (int i = 1;
+         i < argc;
+         i++) {
 
         Modulo modulo;
 
-        if (!lerModulo(argv[i], modulo))
+
+        if (!lerModulo(
+                argv[i],
+                modulo)) {
+
             return 1;
+        }
+
 
         modulos.push_back(modulo);
     }
@@ -301,11 +348,16 @@ int main(int argc, char* argv[]) {
 
     int enderecoAtual = 0;
 
-    for (auto& modulo : modulos) {
 
-        modulo.base = enderecoAtual;
+    for (auto& modulo :
+         modulos) {
 
-        enderecoAtual += modulo.codigo.size();
+        modulo.base =
+            enderecoAtual;
+
+
+        enderecoAtual +=
+            modulo.codigo.size();
     }
 
 
@@ -317,24 +369,54 @@ int main(int argc, char* argv[]) {
 
     vector<Simbolo> tabelaGlobal;
 
-    for (const auto& modulo : modulos) {
 
-        for (const auto& simbolo : modulo.simbolos) {
+    for (const auto& modulo :
+         modulos) {
+
+        for (const auto& global :
+             modulo.globais) {
+
+            int enderecoLocal =
+                buscaSimbolo(
+                    modulo.simbolos,
+                    global
+                );
+
+            if (enderecoLocal == -1) {
+
+                cout << endl;
+
+                cout << "Erro: simbolo global "
+                     << global
+                     << " nao encontrado no modulo "
+                     << modulo.nome
+                     << endl;
+
+                return 1;
+            }
+
             int enderecoGlobal =
-                modulo.base + simbolo.endereco;
-            if (simboloExiste(tabelaGlobal,
-                               simbolo.nome)) {
+                modulo.base +
+                enderecoLocal;
+
+            if (simboloExiste(
+                    tabelaGlobal,
+                    global)) {
+
+                cout << endl;
 
                 cout << "Erro: simbolo global duplicado: "
-                     << simbolo.nome
+                     << global
                      << endl;
 
                 return 1;
             }
 
             tabelaGlobal.push_back({
-                simbolo.nome,
+
+                global,
                 enderecoGlobal
+
             });
         }
     }
@@ -342,15 +424,18 @@ int main(int argc, char* argv[]) {
 
     /*
     ========================================================
-                4. MOSTRAR INFORMACOES
+                4. MOSTRAR BASES DOS MODULOS
     ========================================================
     */
 
     cout << endl;
+
     cout << "BASE DOS MODULOS"
          << endl;
 
-    for (const auto& modulo : modulos) {
+
+    for (const auto& modulo :
+         modulos) {
 
         cout << modulo.nome
              << " -> base "
@@ -361,11 +446,20 @@ int main(int argc, char* argv[]) {
     }
 
 
+    /*
+    ========================================================
+                    5. TABELA GLOBAL
+    ========================================================
+    */
+
     cout << endl;
+
     cout << "TABELA GLOBAL"
          << endl;
 
-    for (const auto& simbolo : tabelaGlobal) {
+
+    for (const auto& simbolo :
+         tabelaGlobal) {
 
         cout << simbolo.nome
              << " -> "
@@ -376,20 +470,43 @@ int main(int argc, char* argv[]) {
 
     /*
     ========================================================
-                5. RESOLVER REFERENCIAS
+                6. RESOLVER REFERENCIAS
     ========================================================
     */
 
-    for (auto& modulo : modulos) {
+    for (auto& modulo :
+         modulos) {
+
 
         for (const auto& referencia :
              modulo.referencias) {
 
-            int endereco =
+
+            int endereco = -1;
+
+            int enderecoLocal =
                 buscaSimbolo(
-                    tabelaGlobal,
+                    modulo.simbolos,
                     referencia.nome
                 );
+
+
+            if (enderecoLocal != -1) {
+
+                endereco =
+                    modulo.base +
+                    enderecoLocal;
+            }
+
+
+            else {
+
+                endereco =
+                    buscaSimbolo(
+                        tabelaGlobal,
+                        referencia.nome
+                    );
+            }
 
             if (endereco == -1) {
 
@@ -402,10 +519,19 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
 
-            if (referencia.enderecoInstrucao
-                < 0 ||
-                referencia.enderecoInstrucao
-                >= (int)modulo.codigo.size()) {
+
+            /*
+            ----------------------------------------------------
+            Verifica endereco da instrucao.
+            ----------------------------------------------------
+            */
+
+            if (
+                referencia.enderecoInstrucao < 0
+                ||
+                referencia.enderecoInstrucao >=
+                    (int)modulo.codigo.size()
+            ) {
 
                 cout << endl;
 
@@ -414,12 +540,14 @@ int main(int argc, char* argv[]) {
 
                 return 1;
             }
+            
             if (referencia.argumento == 1) {
 
                 modulo.codigo[
                     referencia.enderecoInstrucao
                 ][1] = endereco;
             }
+
 
             else if (referencia.argumento == 2) {
 
@@ -428,12 +556,14 @@ int main(int argc, char* argv[]) {
                 ][2] = endereco;
             }
 
+
             else if (referencia.argumento == 3) {
 
                 modulo.codigo[
                     referencia.enderecoInstrucao
                 ][3] = endereco;
             }
+
 
             else {
 
@@ -448,11 +578,14 @@ int main(int argc, char* argv[]) {
 
     /*
     ========================================================
-                6. GERAR CODIGO FINAL
+                7. GERAR CODIGO FINAL
     ========================================================
     */
 
-    ofstream saida("saida_binario.txt");
+    ofstream saida(
+        "saida_binario.txt"
+    );
+
 
     if (!saida.is_open()) {
 
@@ -462,32 +595,39 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    for (const auto& modulo : modulos) {
+    for (const auto& modulo :
+         modulos) {
 
         for (const auto& instrucao :
              modulo.codigo) {
 
             saida
-                << instrucao[0] << " "
-                << instrucao[1] << " "
-                << instrucao[2] << " "
+                << instrucao[0]
+                << " "
+                << instrucao[1]
+                << " "
+                << instrucao[2]
+                << " "
                 << instrucao[3]
                 << endl;
         }
     }
+
 
     saida.close();
 
 
     /*
     ========================================================
-                        RESULTADO
+                         RESULTADO
     ========================================================
     */
 
     cout << endl;
+
     cout << "Ligacao concluida."
          << endl;
+
 
     cout << "Arquivo gerado: "
          << "saida_binario.txt"
@@ -498,18 +638,24 @@ int main(int argc, char* argv[]) {
     cout << "Codigo final:"
          << endl;
 
+
     int endereco = 0;
 
-    for (const auto& modulo : modulos) {
+
+    for (const auto& modulo :
+         modulos) {
 
         for (const auto& instrucao :
              modulo.codigo) {
 
             cout << endereco
                  << ": "
-                 << instrucao[0] << " "
-                 << instrucao[1] << " "
-                 << instrucao[2] << " "
+                 << instrucao[0]
+                 << " "
+                 << instrucao[1]
+                 << " "
+                 << instrucao[2]
+                 << " "
                  << instrucao[3]
                  << endl;
 
@@ -517,5 +663,4 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    return 0;
 }

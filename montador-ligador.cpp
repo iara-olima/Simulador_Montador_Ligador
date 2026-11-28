@@ -22,6 +22,10 @@ struct Referencia {
     int argumento;
 };
 
+struct Externo {
+    string nome;
+};
+
 int defineArg(const string& arg) {
 
     if (arg == "r0")
@@ -56,7 +60,10 @@ int defineOperacao(const string& op) {
     return -1;
 }
 
-bool simboloExiste(const vector<Simbolos>& tabela, const string& nome) {
+bool simboloExiste(
+    const vector<Simbolos>& tabela,
+    const string& nome
+) {
 
     for (const auto& simbolo : tabela) {
 
@@ -67,10 +74,31 @@ bool simboloExiste(const vector<Simbolos>& tabela, const string& nome) {
     return false;
 }
 
+bool externoExiste(
+    const vector<Externo>& externos,
+    const string& nome
+) {
+
+    for (const auto& externo : externos) {
+
+        if (externo.nome == nome)
+            return true;
+    }
+
+    return false;
+}
+
+
+/*
+============================================================
+                    RESOLVE ARGUMENTO
+============================================================
+*/
 
 int resolveArgumento(
     const string& argumento,
     const vector<Simbolos>& tabela,
+    const vector<Externo>& externos,
     vector<Referencia>& referencias,
     int enderecoInstrucao,
     int numeroArgumento
@@ -98,14 +126,26 @@ int resolveArgumento(
         }
     }
 
-    referencias.push_back({
-        argumento,
-        enderecoInstrucao,
-        numeroArgumento
-    });
+    for (const auto& externo : externos) {
+
+        if (externo.nome == argumento) {
+
+            referencias.push_back({
+                argumento,
+                enderecoInstrucao,
+                numeroArgumento
+            });
+
+            return -1;
+        }
+    }
+
+    cout << "Erro: simbolo nao declarado: "
+         << argumento << endl;
 
     return -1;
 }
+
 
 int main(int argc, char* argv[]) {
 
@@ -117,6 +157,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     ifstream arquivo(argv[1]);
 
     if (!arquivo.is_open()) {
@@ -126,6 +167,7 @@ int main(int argc, char* argv[]) {
 
         return 1;
     }
+
 
     string nomeArquivo = argv[1];
 
@@ -146,6 +188,7 @@ int main(int argc, char* argv[]) {
             + "_intermediario.txt";
     }
 
+
     ofstream arquivoSaida(nomeSaida);
 
     if (!arquivoSaida.is_open()) {
@@ -156,14 +199,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     vector<Simbolos> tabela;
+
+    vector<Externo> externos;
+
     vector<Referencia> referencias;
+
 
     string linha;
     string op;
     string arg1;
     string arg2;
     string arg3;
+
 
     /*
     ============================================================
@@ -183,6 +232,87 @@ int main(int argc, char* argv[]) {
         if (op == "end")
             continue;
 
+        if (op == "global") {
+
+            ss >> arg1;
+
+            if (arg1.empty()) {
+
+                cout << "Erro: variavel global sem nome."
+                     << endl;
+
+                return 1;
+            }
+
+
+            if (simboloExiste(tabela, arg1)) {
+
+                cout << "Erro: simbolo duplicado: "
+                     << arg1 << endl;
+
+                return 1;
+            }
+
+
+            if (externoExiste(externos, arg1)) {
+
+                cout << "Erro: variavel declarada como "
+                     << "global e external: "
+                     << arg1 << endl;
+
+                return 1;
+            }
+
+
+            tabela.push_back({
+                arg1,
+                endereco
+            });
+
+
+            endereco++;
+
+            continue;
+        }
+
+        if (op == "external") {
+
+            ss >> arg1;
+
+            if (arg1.empty()) {
+
+                cout << "Erro: variavel external sem nome."
+                     << endl;
+
+                return 1;
+            }
+
+
+            if (simboloExiste(tabela, arg1)) {
+
+                cout << "Erro: variavel ja declarada localmente: "
+                     << arg1 << endl;
+
+                return 1;
+            }
+
+
+            if (externoExiste(externos, arg1)) {
+
+                cout << "Erro: variavel external duplicada: "
+                     << arg1 << endl;
+
+                return 1;
+            }
+
+
+            externos.push_back({
+                arg1
+            });
+
+            continue;
+        }
+
         if (op == "byte") {
 
             ss >> arg1;
@@ -195,6 +325,7 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
 
+
             if (simboloExiste(tabela, arg1)) {
 
                 cout << "Erro: simbolo duplicado: "
@@ -203,13 +334,28 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
 
+
+            if (externoExiste(externos, arg1)) {
+
+                cout << "Erro: variavel declarada como "
+                     << "external e local: "
+                     << arg1 << endl;
+
+                return 1;
+            }
+
+
             tabela.push_back({
                 arg1,
                 endereco
             });
+
+            endereco++;
+
+            continue;
         }
 
-        else if (op == ":") {
+        if (op == ":") {
 
             ss >> arg1;
 
@@ -221,6 +367,7 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
 
+
             if (simboloExiste(tabela, arg1)) {
 
                 cout << "Erro: simbolo duplicado: "
@@ -228,12 +375,24 @@ int main(int argc, char* argv[]) {
 
                 return 1;
             }
-            tabela.push_back({arg1, endereco + 1});
+
+
+            tabela.push_back({
+                arg1,
+                endereco + 1
+            });
+
+            endereco++;
+
+            continue;
         }
+
         endereco++;
     }
 
+
     arquivo.close();
+
 
     /*
     ============================================================
@@ -251,9 +410,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     arquivoSaida << "CODE" << endl;
 
+
     int enderecoInstrucao = 0;
+
 
     while (getline(arquivo2, linha)) {
 
@@ -264,6 +426,12 @@ int main(int argc, char* argv[]) {
 
         if (op == "end")
             continue;
+
+        if (op == "global" ||
+            op == "external") {
+
+            continue;
+        }
 
         if (op == "byte" || op == ":") {
 
@@ -282,6 +450,7 @@ int main(int argc, char* argv[]) {
 
         ss >> arg1 >> arg2 >> arg3;
 
+
         int o = defineOperacao(op);
 
         if (o == -1) {
@@ -292,77 +461,150 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        int a1 = resolveArgumento(arg1, tabela, referencias, enderecoInstrucao, 1);
 
-        int a2 = resolveArgumento(arg2, tabela, referencias, enderecoInstrucao, 2);
+        int a1 =
+            resolveArgumento(
+                arg1,
+                tabela,
+                externos,
+                referencias,
+                enderecoInstrucao,
+                1
+            );
 
-        int a3 = resolveArgumento(arg3, tabela, referencias, enderecoInstrucao, 3);
 
-        arquivoSaida << o << " " << a1 << " " << a2 << " " << a3 << endl;
+        int a2 =
+            resolveArgumento(
+                arg2,
+                tabela,
+                externos,
+                referencias,
+                enderecoInstrucao,
+                2
+            );
+
+
+        int a3 =
+            resolveArgumento(
+                arg3,
+                tabela,
+                externos,
+                referencias,
+                enderecoInstrucao,
+                3
+            );
+
+
+        arquivoSaida
+            << o << " "
+            << a1 << " "
+            << a2 << " "
+            << a3
+            << endl;
+
 
         enderecoInstrucao++;
     }
 
-    arquivo2.close();
 
-    /*
-    ============================================================
-                         TABELA DE SIMBOLOS
-    ============================================================
-    */
+    arquivo2.close();
 
     arquivoSaida << endl;
     arquivoSaida << "SYMBOLS" << endl;
 
+
     for (const auto& simbolo : tabela) {
 
-        arquivoSaida << simbolo.nome << " " << simbolo.end << endl;
+        arquivoSaida
+            << simbolo.nome
+            << " "
+            << simbolo.end
+            << endl;
     }
 
-    /*
-    ============================================================
-                       TABELA DE REFERENCIAS
-    ============================================================
-    */
+    arquivoSaida << endl;
+    arquivoSaida << "EXTERNALS" << endl;
+
+
+    for (const auto& externo : externos) {
+
+        arquivoSaida
+            << externo.nome
+            << endl;
+    }
 
     arquivoSaida << endl;
     arquivoSaida << "REFERENCES" << endl;
 
+
     for (const auto& referencia : referencias) {
 
-        arquivoSaida << referencia.nome << " " << referencia.enderecoInstrucao << " " << referencia.argumento << endl;
+        arquivoSaida
+            << referencia.nome
+            << " "
+            << referencia.enderecoInstrucao
+            << " "
+            << referencia.argumento
+            << endl;
     }
 
+
     arquivoSaida.close();
-
-    /*
-    ============================================================
-                          INFORMACOES
-    ============================================================
-    */
-
-    cout << endl;
-    cout << "Montagem intermediaria concluida." << endl;
-
-    cout << "Arquivo gerado: " << nomeSaida << endl;
-
+    
     cout << endl;
 
-    cout << "Simbolos locais:" << endl;
+    cout << "Montagem intermediaria concluida."
+         << endl;
+
+    cout << "Arquivo gerado: "
+         << nomeSaida
+         << endl;
+
+
+    cout << endl;
+
+    cout << "Simbolos locais:"
+         << endl;
 
     for (const auto& simbolo : tabela) {
 
-        cout << "  "  << simbolo.nome << " -> " << simbolo.end << endl;
+        cout << "  "
+             << simbolo.nome
+             << " -> "
+             << simbolo.end
+             << endl;
     }
+
 
     cout << endl;
 
-    cout << "Referencias externas:" << endl;
+    cout << "Variaveis externas:"
+         << endl;
+
+    for (const auto& externo : externos) {
+
+        cout << "  "
+             << externo.nome
+             << endl;
+    }
+
+
+    cout << endl;
+
+    cout << "Referencias:"
+         << endl;
 
     for (const auto& referencia : referencias) {
 
-        cout << "  " << referencia.nome << " -> instrucao " << referencia.enderecoInstrucao << ", argumento " << referencia.argumento << endl;
+        cout << "  "
+             << referencia.nome
+             << " -> instrucao "
+             << referencia.enderecoInstrucao
+             << ", argumento "
+             << referencia.argumento
+             << endl;
     }
+
 
     return 0;
 }
